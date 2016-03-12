@@ -50,6 +50,15 @@ public class CalculatorTest
 	
 	private static void command(String input) throws Error
 	{
+		Pattern digitErrPattern = Pattern.compile("[0-9]+\\s+[0-9]+");
+		Matcher digitErr = digitErrPattern.matcher(input);
+		boolean isDigErr = digitErr.find();
+		if(isDigErr) {
+			throw new Error();
+		}
+		
+		input = input.replaceAll(" ","");
+		
 		CalculatorTest in = new CalculatorTest(input);
 		
 		boolean isCorrectInput = in.isRightInput();
@@ -64,12 +73,8 @@ public class CalculatorTest
     	
     	//convert to postfix expressions and print them
     	CalculatorTest postfixIn = in.toPostfix();
-    	int i;
-    	for(i=0; i<postfixIn.str.length()-1; i++) {
-    		System.out.print(postfixIn.getChar(i)+" ");
-    	}
-    	System.out.println(postfixIn.getChar(i));
-    	
+    	System.out.println(postfixIn.str.substring(1));
+
 	} // end command
 	
 	public char getChar(int index) 
@@ -84,17 +89,7 @@ public class CalculatorTest
 	{ //check whether 'input' is correct or not
 		boolean isRight = true; 
 		String input = this.str;
-		
-		Pattern digitErrPattern = Pattern.compile("[0-9]+\\s+[0-9]+");
-		Matcher digitErr = digitErrPattern.matcher(input);
-		boolean isDigErr = digitErr.find();
-		if(isDigErr) {
-			isRight = false;
-			return isRight;
-		}
-		
-		input = input.replaceAll(" ","");
-				
+					
 		boolean isBracesErr = input.contains("()");
 		if(isBracesErr) {
 			isRight = false;
@@ -154,7 +149,7 @@ public class CalculatorTest
     	int i = 0;
     	char ch;
     	while(balancedSoFar && i<this.str.length()) {
-    		ch = this.str.charAt(i);
+    		ch = this.getChar(i);
     		++i;
     		if(ch == '(') {
     			myStack.push('(');
@@ -178,20 +173,62 @@ public class CalculatorTest
     	return isBalanced;
 	}
 	
+	public int opPrecedence(char op) 
+	{ 
+		int precedence = 0;
+		
+		switch(op) {
+		case '^':
+			precedence = 3;
+			break;
+		case '~':
+			precedence = 2;
+			break;
+		case '*':
+		case '/':
+		case '%':
+			precedence = 1;
+			break;
+		case '+':
+		case '-':
+			precedence = 0;
+			break;
+		} //end switch
+		
+		return precedence;
+	} //end opPrecedence
+
+
+	public CalculatorTest withUnary() 
+	{
+		CalculatorTest withUnaryMinus;
+		
+		Pattern headMinusPattern = Pattern.compile("^[\\-]");
+		Pattern afterOpPattern = Pattern.compile("[\\+\\-\\*\\^\\/\\%\\(][\\-]");
+		Matcher headMinus = headMinusPattern.matcher(this.str);
+		Matcher afterOp = afterOpPattern.matcher(this.str);
+		boolean isUnary = (headMinus.find() || afterOp.find());
+		
+		return withUnaryMinus;
+	}
+	
 	public CalculatorTest toPostfix()
 	{ //convert infix expressions to postfix expressions
 		CalculatorTest postfixResult = new CalculatorTest();
-		char[] postfixArray = new char[this.str.length()];
 		
 		Stack<Character> aStack = new Stack<Character>();
 				
 		char ch;
 		int i;
 		for(i = 0; i<this.str.length(); i++){
-			ch = getChar(i);
+			ch = this.getChar(i);
 			if (ch>='0' && ch<='9') {
 				//append operand to end of postfixResult
-				postfixArray[i] = ch;
+				postfixResult.str += ch;
+				if(i+1==this.str.length() || this.getChar(i+1)<'0' || this.getChar(i+1)>'9') {
+					//if it's the end of an operand, add whitespace
+					postfixResult.str += " ";
+				}
 			}
 			else if(ch == '(') {	
 				//save '(' on stack
@@ -200,15 +237,20 @@ public class CalculatorTest
 			else if(ch == ')') {
 				//pop stack until matching '('
 				while(aStack.peek() != '(') {
-					postfixArray[i] = aStack.pop();
+					postfixResult.str += aStack.pop() + " ";
 				} 
 				aStack.pop();	//remove the open parenthesis
 			}
-			else if(ch=='+' || ch=='-' || ch=='*' || ch=='^' || ch=='%' || ch=='/')	 {
-				
+			else if(ch=='+' || ch=='-' || ch=='*' || ch=='%' || ch=='/')	 {
 				//process stack operators of greater precedence
-				while(!aStack.isEmpty() && aStack.peek() != '(' && postfixResult.opPrecedence(ch) <= postfixResult.opPrecedence(aStack.peek())) {
-					postfixArray[i] = aStack.pop(); 
+				while(!aStack.isEmpty() && aStack.peek() != '(' && opPrecedence(aStack.peek()) >= opPrecedence(ch)) {
+					postfixResult.str += aStack.pop() + " "; 
+				} 
+				aStack.push(ch);	//save new operator
+			}
+			else if(ch=='^') {
+				while(!aStack.isEmpty() && aStack.peek() != '(' && opPrecedence(aStack.peek()) > opPrecedence(ch)) {
+					postfixResult.str += aStack.pop() + " "; 
 				} 
 				aStack.push(ch);	//save new operator
 			}
@@ -219,36 +261,10 @@ public class CalculatorTest
 		
 		//append to postfixResult the operators remaining in the stack
 		while(!aStack.isEmpty()) {
-			postfixArray[i] = aStack.pop();
-			i++;
+			postfixResult.str += aStack.pop() + " ";
 		} //end while
 			
 		return postfixResult;
 	} //end toPostfix
-	
-	public int opPrecedence(char op) 
-	{ 
-		int precedence = 0;
-		
-		switch(op) {
-		case '^':
-			precedence = 0;
-			break;
-		case '~':
-			precedence = 1;
-			break;
-		case '*':
-		case '/':
-		case '%':
-			precedence = 2;
-			break;
-		case '+':
-		case '-':
-			precedence = 3;
-			break;
-		} //end switch
-		
-		return precedence;
-	} //end opPrecedence
 } // end class
 
