@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.lang.Math;
 
 public class CalculatorTest {
 	private String str;
@@ -67,8 +68,9 @@ public class CalculatorTest {
 		CalculatorTest postfixIn = in.toPostfix();
 		System.out.println(postfixIn.str.substring(1));
 		
+		CalculatorTest result = postfixIn.calculate();
+		System.out.println(result.str);
 		
-
 	} // end command
 
 	public char getChar(int index) {
@@ -76,7 +78,7 @@ public class CalculatorTest {
 		c = this.str.charAt(index);
 
 		return c;
-	}
+	} // end getChar
 
 	public boolean isRightInput() { // check whether 'input' is correct or not
 		boolean isRight = true;
@@ -129,7 +131,7 @@ public class CalculatorTest {
 		}
 
 		return isRight;
-	}
+	} // end isRight
 
 	public boolean isBalanced() { // check whether 'input' has balances braces
 		boolean isBalanced = true;
@@ -160,31 +162,7 @@ public class CalculatorTest {
 		} // end if
 
 		return isBalanced;
-	}
-
-	public int opPrecedence(char op) {
-		int precedence = 0;
-
-		switch (op) {
-		case '^':
-			precedence = 3;
-			break;
-		case '~':
-			precedence = 2;
-			break;
-		case '*':
-		case '/':
-		case '%':
-			precedence = 1;
-			break;
-		case '+':
-		case '-':
-			precedence = 0;
-			break;
-		} // end switch
-
-		return precedence;
-	} // end opPrecedence
+	} // end isBalanced
 
 	public CalculatorTest withUnary()
 	{ // find all unary '-' and replace them to '~'
@@ -222,7 +200,31 @@ public class CalculatorTest {
 		CalculatorTest withUnaryMinus = new CalculatorTest(result);
 
 		return withUnaryMinus;
-	}
+	} // end withUnary
+
+	public int opPrecedence(char op) {
+		int precedence = 0;
+	
+		switch (op) {
+		case '^':
+			precedence = 3;
+			break;
+		case '~':
+			precedence = 2;
+			break;
+		case '*':
+		case '/':
+		case '%':
+			precedence = 1;
+			break;
+		case '+':
+		case '-':
+			precedence = 0;
+			break;
+		} // end switch
+	
+		return precedence;
+	} // end opPrecedence
 
 	public CalculatorTest toPostfix() { // convert infix expressions to postfix
 										// expressions
@@ -279,5 +281,82 @@ public class CalculatorTest {
 
 		return postfixResult;
 	} // end toPostfix
+	
+	public CalculatorTest calculate() {
+		Stack<String> calStack = new Stack<String>();
+		
+		int i = 0;
+		int spaceIndex = this.str.length()-1;
+		String value;
+		for(i=this.str.length()-2; i>0; i--) {
+			if(this.getChar(i) == ' ') {
+				value = this.str.substring(i+1,spaceIndex);
+				spaceIndex = i;
+				calStack.push(value);
+			}
+		} // end for
+		value = this.str.substring(i+1, spaceIndex);
+		calStack.push(value);
+		
+		Stack<Long> tempStack = new Stack<Long>();
+		
+		long firstVal, secVal;
+		while(!calStack.isEmpty()) {
+			switch(calStack.peek()) {
+			case "+":
+				secVal = tempStack.pop();
+				firstVal = tempStack.pop();
+				tempStack.push(firstVal + secVal);
+				calStack.pop();
+				break;
+			case "-":
+				secVal = tempStack.pop();
+				firstVal = tempStack.pop();
+				tempStack.push(firstVal - secVal);
+				calStack.pop();
+				break;
+			case "*":
+				secVal = tempStack.pop();
+				firstVal = tempStack.pop();
+				tempStack.push(firstVal * secVal);
+				calStack.pop();
+				break;
+			case "/":
+				secVal = tempStack.pop();
+				firstVal = tempStack.pop();
+				tempStack.push(firstVal / secVal);
+				calStack.pop();
+				break;
+			case "%":
+				secVal = tempStack.pop();
+				firstVal = tempStack.pop();
+				tempStack.push(firstVal % secVal);
+				calStack.pop();
+				break;
+			case "^":
+				secVal = tempStack.pop();
+				firstVal = tempStack.pop();
+				tempStack.push((long) Math.pow(firstVal, secVal));
+				calStack.pop();
+				break;
+			case "~":
+				secVal = tempStack.pop();
+				tempStack.push(secVal * (-1));
+				calStack.pop();
+				break;
+			default:
+				tempStack.push(Long.parseLong(calStack.peek()));
+				calStack.pop();
+			}
+		}
+		
+		String resultValue = new String(String.valueOf(tempStack.pop()));
+		
+		CalculatorTest calculated = new CalculatorTest(resultValue);
+		
+		return calculated;
+		
+	} // end calculate
+	
 } // end class
 
