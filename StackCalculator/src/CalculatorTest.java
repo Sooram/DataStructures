@@ -37,7 +37,8 @@ public class CalculatorTest {
 		}
 	} // end main
 
-	private static void command(String input) throws Error {
+	private static void command(String input) throws Error 
+	{
 		//check whether operands have spaces
 		Pattern digitErrPattern = Pattern.compile("[0-9]+\\s+[0-9]+");
 		Matcher digitErr = digitErrPattern.matcher(input);
@@ -68,28 +69,33 @@ public class CalculatorTest {
 		CalculatorTest postfixIn = in.toPostfix();
 		System.out.println(postfixIn.str.substring(1));
 		
+		// do calculation
 		CalculatorTest result = postfixIn.calculate();
 		System.out.println(result.str);
 		
 	} // end command
 
-	public char getChar(int index) {
+	public char getChar(int index) 
+	{
 		char c;
 		c = this.str.charAt(index);
 
 		return c;
 	} // end getChar
 
-	public boolean isRightInput() { // check whether 'input' is correct or not
+	public boolean isRightInput() 
+	{ // check whether 'input' is correct or not
 		boolean isRight = true;
 		String input = this.str;
 
+		// if there's nothing inside the parenthesis
 		boolean isBracesErr = input.contains("()");
 		if (isBracesErr) {
 			isRight = false;
 			return isRight;
 		}
 
+		// if there're more than one operator in a row
 		Pattern opRepPattern = Pattern.compile("[\\+\\*\\^\\/\\%]{2,}");
 		Matcher opRep = opRepPattern.matcher(input);
 		boolean isOpRepErr = opRep.find();
@@ -98,6 +104,7 @@ public class CalculatorTest {
 			return isRight;
 		}
 
+		// if the operators are at the head of the input
 		Pattern opFirstPattern = Pattern.compile("^[\\+\\*\\^\\/\\%]");
 		Matcher opFirst = opFirstPattern.matcher(input);
 		boolean isOpFirstErr = opFirst.find();
@@ -106,6 +113,7 @@ public class CalculatorTest {
 			return isRight;
 		}
 
+		// if the operators are at the end of the input
 		Pattern opLastPattern = Pattern.compile("[\\+\\*\\^\\/\\%]$");
 		Matcher opLast = opLastPattern.matcher(input);
 		boolean isOpLastErr = opLast.find();
@@ -114,18 +122,12 @@ public class CalculatorTest {
 			return isRight;
 		}
 
+
+		// if the input divides some number by 0
 		Pattern divZeroPattern = Pattern.compile("[0-9]+[\\/\\%][0]");
 		Matcher divZero = divZeroPattern.matcher(input);
 		boolean isDivZeroErr = divZero.find();
 		if (isDivZeroErr) {
-			isRight = false;
-			return isRight;
-		}
-
-		Pattern powerPattern = Pattern.compile("[0][\\^][\\(]?[\\-]");
-		Matcher power = powerPattern.matcher(input);
-		boolean isPowerErr = power.find();
-		if (isPowerErr) {
 			isRight = false;
 			return isRight;
 		}
@@ -202,7 +204,7 @@ public class CalculatorTest {
 		return withUnaryMinus;
 	} // end withUnary
 
-	public int opPrecedence(char op) {
+	public static int opPrecedence(char op) {
 		int precedence = 0;
 	
 		switch (op) {
@@ -258,13 +260,13 @@ public class CalculatorTest {
 				
 			} else if (ch == '+' || ch == '-' || ch == '*' || ch == '%'	|| ch == '/') {
 				// process stack operators of greater precedence
-				while (!aStack.isEmpty() && aStack.peek() != '(' && opPrecedence(aStack.peek()) >= opPrecedence(ch)) {
+				while (!aStack.isEmpty() && aStack.peek() != '(' && CalculatorTest.opPrecedence(aStack.peek()) >= CalculatorTest.opPrecedence(ch)) {
 					postfixResult.str += aStack.pop() + " ";
 				}
 				aStack.push(ch); // save new operator
 				
 			} else if (ch == '^' || ch == '~') {
-				while (!aStack.isEmpty() && aStack.peek() != '(' && opPrecedence(aStack.peek()) > opPrecedence(ch)) {
+				while (!aStack.isEmpty() && aStack.peek() != '(' && CalculatorTest.opPrecedence(aStack.peek()) > CalculatorTest.opPrecedence(ch)) {
 					postfixResult.str += aStack.pop() + " ";
 				}
 				aStack.push(ch); // save new operator
@@ -323,12 +325,18 @@ public class CalculatorTest {
 				break;
 			case "/":
 				secVal = tempStack.pop();
+				if(secVal == 0) {
+					throw new Error();
+				}
 				firstVal = tempStack.pop();
 				tempStack.push(firstVal / secVal);
 				calStack.pop();
 				break;
 			case "%":
 				secVal = tempStack.pop();
+				if(secVal == 0) {
+					throw new Error();
+				}
 				firstVal = tempStack.pop();
 				tempStack.push(firstVal % secVal);
 				calStack.pop();
@@ -336,6 +344,9 @@ public class CalculatorTest {
 			case "^":
 				secVal = tempStack.pop();
 				firstVal = tempStack.pop();
+				if(firstVal == 0 && secVal < 0) {
+					throw new Error();
+				}
 				tempStack.push((long) Math.pow(firstVal, secVal));
 				calStack.pop();
 				break;
