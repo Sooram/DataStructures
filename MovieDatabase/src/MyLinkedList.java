@@ -7,9 +7,10 @@ public class MyLinkedList<T> implements ListInterface<T> {
 	Node<T> head;
 	int numItems;
 
+	// constructor
 	public MyLinkedList() {
 		head = new Node<T>(null);
-	}
+	} // end constructor
 
     /**
      * {@code Iterable<T>}를 구현하여 iterator() 메소드를 제공하는 클래스의 인스턴스는
@@ -65,11 +66,12 @@ class MyLinkedListIterator<T> implements Iterator<T> {
 	private Node<T> curr;
 	private Node<T> prev;
 
+	// constructor
 	public MyLinkedListIterator(MyLinkedList<T> list) {
 		this.list = list;
 		this.curr = list.head;
 		this.prev = null;
-	}
+	} // end constructor
 
 	@Override
 	public boolean hasNext() {

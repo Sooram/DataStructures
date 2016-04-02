@@ -7,13 +7,14 @@ public class MovieDBItem implements Comparable<MovieDBItem> {
     private final String genre;
     private final String title;
 
+    //constructor
     public MovieDBItem(String genre, String title) {
         if (genre == null) throw new NullPointerException("genre");
         if (title == null) throw new NullPointerException("title");
 
         this.genre = genre;
         this.title = title;
-    }
+    } // end constructor
 
     public String getGenre() {
         return genre;
