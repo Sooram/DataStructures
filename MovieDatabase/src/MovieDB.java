@@ -1,4 +1,3 @@
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -64,7 +63,7 @@ public class MovieDB {
         for(Genre genre : genreList) {
         	if(genre.compareTo(itemGenre) == 0) {
         		// if the genre is in the list
-        		MyLinkedListIterator<String> itrTitle = new MyLinkedListIterator<String>(genre.titleList);
+        		MovieListIterator itrTitle = new MovieListIterator(genre.titleList);
         		for(String title : genre.titleList) {
         			itrTitle.next();
         			if(title.compareTo(itemTitle) == 0) {
@@ -112,7 +111,7 @@ public class MovieDB {
         MyLinkedListIterator<Genre> itrGenre = new MyLinkedListIterator<Genre>(genreList);
             
         for(Genre genre : genreList) {
-        	MyLinkedListIterator<String> itrTitle = new MyLinkedListIterator<String>(genre.titleList);
+        	MovieListIterator itrTitle = new MovieListIterator(genre.titleList);
         	String genreName = new String(genre.getItem());
         	for(String movie : genre.titleList) {
         		itrTitle.next();
@@ -128,7 +127,7 @@ public class MovieDB {
 } // end class MovieDB
 
 class Genre extends Node<String> implements Comparable<Genre> {
-	MyLinkedList<String> titleList = new MyLinkedList<>();
+	MovieList titleList = new MovieList();
 	
 	// constructor
 	public Genre(String name) {
@@ -199,7 +198,7 @@ class MovieList implements ListInterface<String> {
 
 	@Override
 	public Iterator<String> iterator() {
-		return new Iterator<String>(this);
+		return new MovieListIterator(this);
 	}
 
 	@Override
@@ -214,11 +213,21 @@ class MovieList implements ListInterface<String> {
 
 	@Override
 	public void add(String item) {
-		Node<String> last = head;
-		while (last.getNext() != null) {
-			last = last.getNext();
+		Node<String> curr = this.head;
+		Node<String> prev = this.head;
+
+		curr = curr.getNext();
+		while((curr != null) && (item.compareTo(curr.getItem()) > 0)) {
+			prev = curr;
+			curr = curr.getNext();
+			
 		}
-		last.insertNext(item);
+		Node<String> temp = curr;
+		prev.insertNext(item);
+		prev = prev.getNext();
+		prev.setNext(temp);
+	
+	
 		numItems += 1;
 	}
 
@@ -232,3 +241,44 @@ class MovieList implements ListInterface<String> {
 		head.setNext(null);
 	}
 } // end class MovieList
+
+class MovieListIterator implements Iterator<String> {
+	private MovieList list;
+	private Node<String> curr;
+	private Node<String> prev;
+
+	// constructor
+	public MovieListIterator(MovieList list) {
+		this.list = list;
+		this.curr = list.head;
+		this.prev = null;
+	} // end constructor
+
+	@Override
+	public boolean hasNext() {
+		return curr.getNext() != null;
+	}
+
+	@Override
+	public String next() {
+		if (!hasNext())
+			throw new NoSuchElementException();
+
+		prev = curr;
+		curr = curr.getNext();
+
+		return curr.getItem();
+	}
+
+	@Override
+	public void remove() {
+		if (prev == null)
+			throw new IllegalStateException("next() should be called first");
+		if (curr == null)
+			throw new NoSuchElementException();
+		prev.removeNext();
+		list.numItems -= 1;
+		curr = prev;
+		prev = null;
+	}
+}
