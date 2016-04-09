@@ -32,8 +32,7 @@ public class MovieDBItem implements Comparable<MovieDBItem> {
 	 	String originalTitle = this.title;
 	 	String newTitle = other.title;
     	
-    	if((originalGenre.length() > newGenre.length()) || 
-    			((originalGenre.length() == newGenre.length()) && (originalGenre.compareTo(newGenre) > 0))) { 
+    	if (originalGenre.compareTo(newGenre) > 0) { 
     		// original genre > new genre
     		comp = 1;
     	}

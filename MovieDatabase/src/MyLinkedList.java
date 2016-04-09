@@ -2,7 +2,7 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class MyLinkedList<T> implements ListInterface<T> {
+public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T>  {
 	// dummy head
 	Node<T> head;
 	int numItems;
@@ -47,11 +47,21 @@ public class MyLinkedList<T> implements ListInterface<T> {
 
 	@Override
 	public void add(T item) {
-		Node<T> last = head;
-		while (last.getNext() != null) {
-			last = last.getNext();
+		Node<T> curr = this.head;
+		Node<T> prev = this.head;
+
+		curr = curr.getNext();
+		while((curr != null) && (item.compareTo(curr.getItem()) > 0)) {
+			prev = curr;
+			curr = curr.getNext();
+			
 		}
-		last.insertNext(item);
+		Node<T> temp = curr;
+		prev.insertNext(item);
+		prev = prev.getNext();
+		prev.setNext(temp);
+	
+	
 		numItems += 1;
 	}
 
@@ -59,18 +69,19 @@ public class MyLinkedList<T> implements ListInterface<T> {
 	public void removeAll() {
 		head.setNext(null);
 	}
+
 }
 
 class MyLinkedListIterator<T> implements Iterator<T> {
-	private MyLinkedList<T> list;
+	private MyLinkedList<?> list;
 	private Node<T> curr;
 	private Node<T> prev;
 
 	// constructor
-	public MyLinkedListIterator(MyLinkedList<T> list) {
+	public MyLinkedListIterator(MyLinkedList<?> list) {
 		this.list = list;
-		this.curr = list.head;
-		this.prev = null;
+		this.curr = (Node<T>) list.head;
+		this.prev = curr;
 	} // end constructor
 
 	@Override
@@ -91,8 +102,8 @@ class MyLinkedListIterator<T> implements Iterator<T> {
 
 	@Override
 	public void remove() {
-		if (prev == null)
-			throw new IllegalStateException("next() should be called first");
+//		if (prev == null)
+//			throw new IllegalStateException("next() should be called first");
 		if (curr == null)
 			throw new NoSuchElementException();
 		prev.removeNext();
