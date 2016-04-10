@@ -22,10 +22,9 @@ public class MovieDB {
         boolean movieExist = false;
         
         for(Genre genre : genreList) {
-        	if(genre.equals(itemGenre)) {
-        		// if the genre is already in the list
+        	if(genre.equals(itemGenre)) { // if the genre is already in the list   		
         		genreExist = true;
-        		for(String title : genre.titleList) {
+        		for(String title : genre.titleList) { // examine whether we have the movie in the list     			
         			if(title.equals(itemTitle)) {
         				movieExist = true;
         			}
@@ -35,32 +34,10 @@ public class MovieDB {
         		}
         	}
         } // end for
-        
-        
-        if(!genreExist) {
-        	// if the genre doesn't exist in the list
-        	
-/*        	Node<Genre> prev = genreList.head;
-        	Node<Genre> curr = genreList.head.getNext();
-        	
-    		while((curr != null) && (itemGenre.compareTo(curr.getItem()) > 0)) { 
-    			prev = curr;
-    			curr = curr.getNext();
-    		}
-    		Node<Genre> temp = curr;
-    		prev.insertNext(itemGenre);
-    		prev = prev.getNext();
-    		prev.setNext(temp);
-*/    		genreList.add(itemGenre);
+       
+        if(!genreExist) { 
+        	genreList.add(itemGenre);
     		itemGenre.titleList.add(itemTitle);
-        }
-        
-        // for debug-print list
-        for(Genre genre : genreList) {
-        	System.out.println(genre.getItem());
-        	for(String title : genre.titleList) {
-        		System.out.println(title);
-        	}
         }
     
     }
@@ -70,32 +47,23 @@ public class MovieDB {
         String itemTitle = new String(item.getTitle());
        
         MyLinkedListIterator<Genre> itrGenre = new MyLinkedListIterator<>(genreList);
-        
+          
         for(Genre genre : genreList) {
         	itrGenre.next();
-        	if(genre.equals(itemGenre)) {
-        		// if the genre is in the list
+        	if(genre.equals(itemGenre)) { // if the genre is in the list
         		MyLinkedListIterator<String> itrTitle = new MyLinkedListIterator<>(genre.titleList);
-        		for(String title : genre.titleList) {
+        		for(String title : genre.titleList) { // examine whether we have the movie in the list	
         			itrTitle.next();
         			if(title.equals(itemTitle)) {
         				itrTitle.remove();
         			}
         		}
         	} // end if
-        	
-        	if(genre.titleList.isEmpty()) {
+          	if(genre.titleList.isEmpty()) { // if the genre has no movie in it then delete it     		
         		itrGenre.remove();
-        	}
-        	
+        	}     	
         } // end for
-       
-        for(Genre gen : genreList) {
-        	System.out.println(gen.getItem());
-        	for(String tit : gen.titleList) {
-        		System.out.println(tit);
-        	}
-        }
+
     }
 
     public MyLinkedList<MovieDBItem> search(String term) {
@@ -104,11 +72,10 @@ public class MovieDB {
         
         for(Genre genre : genreList) {
         	for(String title : genre.titleList) {
-        		if(title.contains(term)) {
+        		if(title.contains(term)) { // insert movies containing the given term into the result array
         			MovieDBItem item = new MovieDBItem(genre.getItem(), title);
         			results.add(item);
-        		}
-        			
+        		}    			
         	}
         } // end for
 
@@ -121,8 +88,7 @@ public class MovieDB {
         
         MyLinkedListIterator<Genre> itrGenre = new MyLinkedListIterator<>(genreList);
             
-        for(Genre genre : genreList) {
-        	// copy 'genreList' to 'results'
+        for(Genre genre : genreList) { // copy 'genreList' to 'results'      	
         	MyLinkedListIterator<String> itrTitle = new MyLinkedListIterator<>(genre.titleList);
         	String genreName = new String(genre.getItem());
         	for(String movie : genre.titleList) {
@@ -153,10 +119,9 @@ class Genre extends Node<String> implements Comparable<Genre> {
 	 	String currGenre = this.getItem();
 	 	String newGenre = o.getItem();
     	
-   // 	if((currGenre.length() > newGenre.length()) || 
-  //  			((currGenre.length() == newGenre.length()) && (currGenre.compareTo(newGenre) > 0))) { 
+  
 	 	if(currGenre.compareTo(newGenre) > 0) {
-	 	// original value > new value
+	 		// original value > new value
     		comp = 1;
     	}
     	else if(currGenre.compareTo(newGenre) == 0) { 
