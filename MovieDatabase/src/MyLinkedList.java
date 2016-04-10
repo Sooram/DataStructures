@@ -72,15 +72,15 @@ public class MyLinkedList<T extends Comparable<T>> implements ListInterface<T>  
 
 }
 
-class MyLinkedListIterator<T> implements Iterator<T> {
-	private MyLinkedList<?> list;
+class MyLinkedListIterator<T extends Comparable<T>> implements Iterator<T> {
+	private MyLinkedList<T> list;
 	private Node<T> curr;
 	private Node<T> prev;
 
 	// constructor
-	public MyLinkedListIterator(MyLinkedList<?> list) {
+	public MyLinkedListIterator(MyLinkedList<T> list) {
 		this.list = list;
-		this.curr = (Node<T>) list.head;
+		this.curr = list.head;
 		this.prev = curr;
 	} // end constructor
 
@@ -102,8 +102,6 @@ class MyLinkedListIterator<T> implements Iterator<T> {
 
 	@Override
 	public void remove() {
-//		if (prev == null)
-//			throw new IllegalStateException("next() should be called first");
 		if (curr == null)
 			throw new NoSuchElementException();
 		prev.removeNext();
