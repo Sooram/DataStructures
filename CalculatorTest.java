@@ -8,17 +8,20 @@ public class CalculatorTest {
 	private String str;
 
 	// constructor
-	public CalculatorTest() {
+	public CalculatorTest() 
+	{
 		str = "\0";
 	}
 
-	public CalculatorTest(String st) {
+	public CalculatorTest(String st) 
+	{
 		str = st;
 	}
 
 	// end constructor
 
-	public static void main(String args[]) {
+	public static void main(String args[]) 
+	{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
 		while (true) {
@@ -50,38 +53,35 @@ public class CalculatorTest {
 		//delete all the spaces
 		input = input.replaceAll(" ", "");
 
-		CalculatorTest in = new CalculatorTest(input);
+		//check input
+		CalculatorTest calInput = new CalculatorTest(input);
 
-		boolean isCorrectInput = in.isRightInput();
-		if (isCorrectInput == false) {
-			throw new Error();
-		}
-
-		boolean isBalBraces = in.isBalanced();
-		if (isBalBraces == false) {
+		boolean isCorrectInput = calInput.isRightInput();
+		boolean isBalBraces = calInput.isBalanced();
+		if (isCorrectInput == false || isBalBraces == false) {
 			throw new Error();
 		}
 
 		//convert unary '-' to '~'
-		in = in.withUnary();
+		calInput = calInput.convertUnaryMinus();
 
-		// convert to postfix expressions and print them
-		CalculatorTest postfixIn = in.toPostfix();
-		System.out.println(postfixIn.str.substring(1));
+		// convert to postfix expression and print
+		CalculatorTest postfixExp = calInput.toPostfix();
+		System.out.println(postfixExp.str.substring(1));
 		
-		// do calculation
-		CalculatorTest result = postfixIn.calculate();
+		// do calculation and print
+		CalculatorTest result = postfixExp.calculate();
 		System.out.println(result.str);
 		
 	} // end command
 
-	public char getChar(int index) 
+	public char charAt(int index) 
 	{
 		char c;
 		c = this.str.charAt(index);
 
 		return c;
-	} // end getChar
+	} // end charAt
 
 	public boolean isRightInput() 
 	{ // check whether 'input' is correct or not
@@ -89,8 +89,7 @@ public class CalculatorTest {
 		String input = this.str;
 
 		// if there's nothing inside the parenthesis
-		boolean isBracesErr = input.contains("()");
-		if (isBracesErr) {
+		if (this.str.equals("()")) {
 			isRight = false;
 			return isRight;
 		}
@@ -122,8 +121,7 @@ public class CalculatorTest {
 			return isRight;
 		}
 
-
-		// if the input divides some number by 0
+		// if the input divides a number by 0
 		Pattern divZeroPattern = Pattern.compile("[0-9]+[\\/\\%][0]");
 		Matcher divZero = divZeroPattern.matcher(input);
 		boolean isDivZeroErr = divZero.find();
@@ -131,11 +129,21 @@ public class CalculatorTest {
 			isRight = false;
 			return isRight;
 		}
+		
+		Pattern zeroExpMinus = Pattern.compile("[0][\\^][\\-][0-9]+");
+		Matcher zeroExp =zeroExpMinus.matcher(input);
+		boolean isZeroExpErr = zeroExp.find();
+		if(isZeroExpErr) {
+			isRight = false;
+			return isRight;
+		}
 
 		return isRight;
 	} // end isRight
 
-	public boolean isBalanced() { // check whether 'input' has balances braces
+	public boolean isBalanced() 
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	  // check whether 'input' has balances braces
 		boolean isBalanced = true;
 
 		Stack<Character> myStack = new Stack<Character>();
@@ -144,7 +152,7 @@ public class CalculatorTest {
 		int i = 0;
 		char ch;
 		while (balancedSoFar && i < this.str.length()) {
-			ch = this.getChar(i);
+			ch = this.charAt(i);
 			++i;
 			if (ch == '(') {
 				myStack.push('(');
@@ -166,15 +174,15 @@ public class CalculatorTest {
 		return isBalanced;
 	} // end isBalanced
 
-	public CalculatorTest withUnary()
+	public CalculatorTest convertUnaryMinus()
 	{ // find all unary '-' and replace them to '~'
-		char[] withUnaryArray = new char[this.str.length()];
+		char[] withUnaryMinusArray = new char[this.str.length()];
 		
 		Stack<Character> myStack = new Stack<Character>();
 		int i = 0;
 		char ch;
 		for(i=this.str.length()-1; i>=0; i--) { //push string into the stack
-			ch = this.getChar(i);
+			ch = this.charAt(i);
 			myStack.push(ch);
 		}
 		
@@ -185,26 +193,27 @@ public class CalculatorTest {
 		}
 		while(!myStack.isEmpty()) {
 			if(myStack.peek() < '0' || myStack.peek() > '9') { //operators
-				withUnaryArray[i] = myStack.pop();
+				withUnaryMinusArray[i] = myStack.pop();
 				while(!myStack.isEmpty() && myStack.peek() == '-') { //'-'s after an operator
 					i++;
 					myStack.pop();
-					withUnaryArray[i] = '~';
+					withUnaryMinusArray[i] = '~';
 				}
 			}
 			else { //numbers
-				withUnaryArray[i] = myStack.pop();
+				withUnaryMinusArray[i] = myStack.pop();
 			}
 			i++;
 		}
 		
-		String result = new String(withUnaryArray);
+		String result = new String(withUnaryMinusArray);
 		CalculatorTest withUnaryMinus = new CalculatorTest(result);
 
 		return withUnaryMinus;
 	} // end withUnary
 
-	public static int opPrecedence(char op) {
+	public static int opPrecedence(char op) 
+	{
 		int precedence = 0;
 	
 		switch (op) {
@@ -228,8 +237,9 @@ public class CalculatorTest {
 		return precedence;
 	} // end opPrecedence
 
-	public CalculatorTest toPostfix() { // convert infix expressions to postfix
-										// expressions
+	public CalculatorTest toPostfix() 
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	  // convert infix expressions to postfix expressions
 		CalculatorTest postfixResult = new CalculatorTest();
 
 		Stack<Character> aStack = new Stack<Character>();
@@ -237,12 +247,12 @@ public class CalculatorTest {
 		char ch;
 		int i;
 		for (i = 0; i < this.str.length(); i++) {
-			ch = this.getChar(i);
+			ch = this.charAt(i);
 			if (ch >= '0' && ch <= '9') {
 				// append operand to end of postfixResult
 				postfixResult.str += ch;
 				
-				if (i + 1 == this.str.length() || this.getChar(i + 1) < '0' || this.getChar(i + 1) > '9') {
+				if (i + 1 == this.str.length() || this.charAt(i + 1) < '0' || this.charAt(i + 1) > '9') {
 					// if it's the end of an operand, add whitespace
 					postfixResult.str += " ";
 					
@@ -287,11 +297,13 @@ public class CalculatorTest {
 	public CalculatorTest calculate() {
 		Stack<String> calStack = new Stack<String>();
 		
+		// copy current postfixed string into 'calStack'
+		// not as a digit, but as a string(number)
 		int i = 0;
 		int spaceIndex = this.str.length()-1;
 		String value;
 		for(i=this.str.length()-2; i>0; i--) {
-			if(this.getChar(i) == ' ') {
+			if(this.charAt(i) == ' ') {
 				value = this.str.substring(i+1,spaceIndex);
 				spaceIndex = i;
 				calStack.push(value);
@@ -355,7 +367,7 @@ public class CalculatorTest {
 				tempStack.push(secVal * (-1));
 				calStack.pop();
 				break;
-			default:
+			default: // case digit
 				tempStack.push(Long.parseLong(calStack.peek()));
 				calStack.pop();
 			}
