@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.Math;
 
+
 public class CalculatorTest {
 	private String str;
 
@@ -56,8 +57,15 @@ public class CalculatorTest {
 		//check input
 		CalculatorTest calInput = new CalculatorTest(input);
 
-		boolean isCorrectInput = calInput.isRightInput();
+		
 		boolean isBalBraces = calInput.isBalanced();
+		if(isBalBraces) {
+			System.out.println("balanced");
+		}
+		else {
+			System.out.println("unbalanced");
+		}
+		boolean isCorrectInput = calInput.isRightInput(input);
 		if (isCorrectInput == false || isBalBraces == false) {
 			throw new Error();
 		}
@@ -65,12 +73,16 @@ public class CalculatorTest {
 		//convert unary '-' to '~'
 		calInput = calInput.convertUnaryMinus();
 
-		// convert to postfix expression and print
+		// convert to postfix expression
 		CalculatorTest postfixExp = calInput.toPostfix();
-		System.out.println(postfixExp.str.substring(1));
 		
-		// do calculation and print
+		
+		// do calculation
 		CalculatorTest result = postfixExp.calculate();
+		
+		
+		// print postfix expression and the result
+		System.out.println(postfixExp.str);
 		System.out.println(result.str);
 		
 	} // end command
@@ -82,14 +94,18 @@ public class CalculatorTest {
 
 		return c;
 	} // end charAt
-
+/*
 	public boolean isRightInput() 
 	{ // check whether 'input' is correct or not
 		boolean isRight = true;
 		String input = this.str;
 
 		// if there's nothing inside the parenthesis
-		if (this.str.equals("()")) {
+		
+		Pattern opInsideParPattern = Pattern.compile("[\\(][\\+\\-\\*\\/\\%\\^]*[\\)]");
+		Matcher opInsidePar = opInsideParPattern.matcher(input);
+		boolean isOpInsideParErr = opInsidePar.find();
+		if(isOpInsideParErr) {
 			isRight = false;
 			return isRight;
 		}
@@ -140,12 +156,130 @@ public class CalculatorTest {
 
 		return isRight;
 	} // end isRight
+*/
+	public boolean isRightInput(String input)
+	{
+		boolean isRight = true;
+		Stack<Character> inputStack = new Stack<Character>();
+		int index = 0;
+		int numEmptyBraces = 0;
+		
+		char firstCh = input.charAt(0);
+		inputStack.push(firstCh);
+		if(firstCh == '+' || firstCh == '*' || firstCh == '/' || firstCh == '%' || firstCh == '^' || firstCh == ')') {
+			// if the first character is one of the operators
+			return false;
+		}
+		index += 1;
+		
+		while((index < input.length()) && (isRight == true)) {
+			isRight = false;
+			char former = inputStack.peek();  // former character of current character
+			switch (input.charAt(index)) {
+			case '(' :
+				if(former == '+' || former == '-' || former == '*' || former == '/' || former == '%' || former == '^') {
+					// operators
+					isRight = true;
+				}
+				else if(former == '(') {
+					isRight = true;
+				}
+				else if((former >= '0' && former <= '9') || former == ')') { 
+					if(input.charAt(index+1) == ')') { // ()D() ()E() ()(E)() ()()E()()
+						isRight = true;
+					}
+				}
+				break;
+			case ')' :
+				if(former == '(') { // ()E()
+					isRight = true;
+					numEmptyBraces ++;
+				}
+				else if(former == ')') { // ((E))
+					isRight = true;
+				}
+				else if(former >= '0' && former <= '9') { // (D) (E)
+					isRight = true;
+				}
+				break;
+			case '-' :
+				if(former == '(') { // (-E)
+					isRight = true;
+				}
+				else if(former == '+' || former == '-' || former == '*' || former == '/' || former == '%' || former == '^') {
+					// Eop(-E)
+					isRight = true;
+				}
+			case '+' :
+			case '*' :
+			case '/' :
+			case '%' :
+			case '^' :
+				if(former == ')') { // (E)opE
+					isRight = true;
+				}
+				else if(former >= '0' && former <= '9') { // DopE
+					isRight = true;
+				}
+				break;
+			default : // digits
+				if(former == ')') { // ()D()
+					char temp = inputStack.pop();
+					if(inputStack.peek() == '(') {
+						isRight = true;
+					}
+					inputStack.push(temp);
+				}
+				else if(former == '(') { // (D)
+					isRight = true;
+				}
+				else if(former == '+' || former == '-' || former == '*' || former == '/' || former == '%' || former == '^') {
+					// EopD
+					isRight = true;
+				}
+				else if(former >= '0' && former <= '9') { // DD
+					isRight = true;
+				}
+			} // end switch
+			inputStack.push(input.charAt(index));
+			index += 1;
+		} // end while
+		
+		if(numEmptyBraces % 2 != 0) {
+			return false;
+		}
+		
+		// if the operators are at the end of the input
+		Pattern opLastPattern = Pattern.compile("[\\+\\-\\*\\^\\/\\%]$");
+		Matcher opLast = opLastPattern.matcher(input);
+		boolean isOpLastErr = opLast.find();
+		if (isOpLastErr) {
+			return false;
+		}
 
+		// x/0  x%0
+		Pattern divZeroPattern = Pattern.compile("[0-9]+[\\/\\%][0]");
+		Matcher divZero = divZeroPattern.matcher(input);
+		boolean isDivZeroErr = divZero.find();
+		if (isDivZeroErr) {
+			return false;
+		}
+		
+		// 0^x(x<0)
+		Pattern zeroExpMinus = Pattern.compile("[0][\\^][\\-][0-9]+");
+		Matcher zeroExp =zeroExpMinus.matcher(input);
+		boolean isZeroExpErr = zeroExp.find();
+		if(isZeroExpErr) {
+			return false;
+		}
+
+		return isRight;
+	}
+/*	
 	public boolean isBalanced() 
 	{ // modification from the book 'Data Abstraction & problem solving with Java'
 	  // check whether 'input' has balances braces
 		boolean isBalanced = true;
-
 		Stack<Character> myStack = new Stack<Character>();
 
 		boolean balancedSoFar = true;
@@ -173,34 +307,105 @@ public class CalculatorTest {
 
 		return isBalanced;
 	} // end isBalanced
+*/	
+	public boolean isBalanced()
+	{
+		boolean isBalanced = true;
+		Stack<Character> singleBraceStack = new Stack<Character>();
+		Stack<Character> emptyBracesStack = new Stack<Character>(); // for "()"
+		
+		boolean balancedSoFar = true;
+		int i = 0;
+		char ch;
+		boolean pushed = false;
+		while (balancedSoFar && i < this.str.length()) {
+			ch = this.charAt(i);
+			++i;
+			if (ch == '(') {
+				if(i < this.str.length() && this.charAt(i) == ')') {
+					++i;
+					
+					if(pushed == true) {
+						if(this.charAt(i-3) == ')' || (this.charAt(i-3) >= '0' && this.charAt(i-3) <= '9')) {
+							if (!emptyBracesStack.isEmpty()) {
+								emptyBracesStack.pop();
+								pushed = false;
+							} else {
+								balancedSoFar = false;
+							}
+						}
+					}
+					else if(i > this.str.length()-1) {
+						balancedSoFar = false;
+					}
+					else if(this.charAt(i) == '(' || this.charAt(i) == '-' || (this.charAt(i) >= '0' && this.charAt(i) <= '9')) {
+						emptyBracesStack.push('e');
+						pushed = true;
+					}
+				}
+				else {
+					singleBraceStack.push('(');
+				}
+			}
+			else if (ch == ')') {
+				if (!singleBraceStack.isEmpty()) {
+					singleBraceStack.pop();
+				} else {
+					balancedSoFar = false;
+				}
+			}
+		} // end while
+		
+		if (!balancedSoFar || !singleBraceStack.isEmpty() || !emptyBracesStack.isEmpty()) {
+			// 'input' does not have balanced braces
+			isBalanced = false;
+			return isBalanced;
+		} // end if
+
+		return isBalanced;
+	}
+	
 
 	public CalculatorTest convertUnaryMinus()
 	{ // find all unary '-' and replace them to '~'
-		char[] withUnaryMinusArray = new char[this.str.length()];
+		int length = this.str.length();
+		char[] withUnaryMinusArray = new char[length];
 		
 		Stack<Character> myStack = new Stack<Character>();
 		int i = 0;
 		char ch;
-		for(i=this.str.length()-1; i>=0; i--) { //push string into the stack
+		for(i=length-1; i>=0; i--) { //push string into the stack
 			ch = this.charAt(i);
-			myStack.push(ch);
+			if(ch == '(') { 
+				if(myStack.peek() == ')') { // empty braces
+					myStack.pop();
+				}
+				else {
+					myStack.push(ch);
+				}
+			}
+			else {
+				myStack.push(ch);
+			}
 		}
 		
-		i = 0;
+		i = 0; 
 		if(myStack.peek() == '-') { //if the first character is '-', replace it with '~'
 			myStack.pop();
 			myStack.push('~');
 		}
 		while(!myStack.isEmpty()) {
-			if(myStack.peek() < '0' || myStack.peek() > '9') { //operators
+			ch = myStack.peek();  // character on top of the stack
+			if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '^' || ch == '~' || ch == '(') {
+				// operators
 				withUnaryMinusArray[i] = myStack.pop();
-				while(!myStack.isEmpty() && myStack.peek() == '-') { //'-'s after an operator
+				while(!myStack.isEmpty() && myStack.peek() == '-') { // '-'s after an operator
 					i++;
 					myStack.pop();
 					withUnaryMinusArray[i] = '~';
 				}
 			}
-			else { //numbers
+			else { // numbers and ')'
 				withUnaryMinusArray[i] = myStack.pop();
 			}
 			i++;
@@ -240,8 +445,7 @@ public class CalculatorTest {
 	public CalculatorTest toPostfix() 
 	{ // modification from the book 'Data Abstraction & problem solving with Java'
 	  // convert infix expressions to postfix expressions
-		CalculatorTest postfixResult = new CalculatorTest();
-
+		String postfixResultStr = new String();
 		Stack<Character> aStack = new Stack<Character>();
 
 		char ch;
@@ -249,12 +453,12 @@ public class CalculatorTest {
 		for (i = 0; i < this.str.length(); i++) {
 			ch = this.charAt(i);
 			if (ch >= '0' && ch <= '9') {
-				// append operand to end of postfixResult
-				postfixResult.str += ch;
+				// if it's a digit, append it to the end of postfixResult
+				postfixResultStr += ch;
 				
 				if (i + 1 == this.str.length() || this.charAt(i + 1) < '0' || this.charAt(i + 1) > '9') {
 					// if it's the end of an operand, add whitespace
-					postfixResult.str += " ";
+					postfixResultStr += " ";
 					
 				}
 			} else if (ch == '(') {
@@ -262,54 +466,59 @@ public class CalculatorTest {
 				aStack.push(ch);
 				
 			} else if (ch == ')') {
-				// pop stack until matching '('
+				// pop operators from stack and append them to postfixResult until we meet '('
 				while (aStack.peek() != '(') {
-					postfixResult.str += aStack.pop() + " ";
+					postfixResultStr += aStack.pop() + " ";
 				}
 				aStack.pop(); // remove the open parenthesis
 				
 			} else if (ch == '+' || ch == '-' || ch == '*' || ch == '%'	|| ch == '/') {
-				// process stack operators of greater precedence
+				// if operators in stack have higher(or equal) precedence than the new operator(ch),
+				// pop and append them to postfixResult 
 				while (!aStack.isEmpty() && aStack.peek() != '(' && CalculatorTest.opPrecedence(aStack.peek()) >= CalculatorTest.opPrecedence(ch)) {
-					postfixResult.str += aStack.pop() + " ";
+					postfixResultStr += aStack.pop() + " ";
 				}
-				aStack.push(ch); // save new operator
+				aStack.push(ch); // save the new operator on stack
 				
 			} else if (ch == '^' || ch == '~') {
 				while (!aStack.isEmpty() && aStack.peek() != '(' && CalculatorTest.opPrecedence(aStack.peek()) > CalculatorTest.opPrecedence(ch)) {
-					postfixResult.str += aStack.pop() + " ";
+					postfixResultStr += aStack.pop() + " ";
 				}
-				aStack.push(ch); // save new operator
+				aStack.push(ch); // save the new operator on stack
 				
 			} else {
 				throw new Error();
 			}
 		} // end for
 
-		// append to postfixResult the operators remaining in the stack
+		// append the remaining operators to postfixResult 
 		while (!aStack.isEmpty()) {
-			postfixResult.str += aStack.pop() + " ";
-		} // end while
-
+			postfixResultStr += aStack.pop() + " ";
+		} 
+		
+		postfixResultStr = postfixResultStr.trim();
+		
+		CalculatorTest postfixResult = new CalculatorTest(postfixResultStr);
+		
 		return postfixResult;
 	} // end toPostfix
 	
 	public CalculatorTest calculate() {
 		Stack<String> calStack = new Stack<String>();
 		
-		// copy current postfixed string into 'calStack'
-		// not as a digit, but as a string(number)
+		// copy current postfixed string into 'calStack' in reversed order
+		// not as a digit, but as a number
 		int i = 0;
-		int spaceIndex = this.str.length()-1;
+		int spaceIndex = this.str.length();
 		String value;
-		for(i=this.str.length()-2; i>0; i--) {
+		for(i=this.str.length()-1; i>0; i--) {
 			if(this.charAt(i) == ' ') {
 				value = this.str.substring(i+1,spaceIndex);
 				spaceIndex = i;
 				calStack.push(value);
 			}
 		} // end for
-		value = this.str.substring(i+1, spaceIndex);
+		value = this.str.substring(i, spaceIndex);
 		calStack.push(value);
 		
 		Stack<Long> tempStack = new Stack<Long>();
@@ -367,7 +576,7 @@ public class CalculatorTest {
 				tempStack.push(secVal * (-1));
 				calStack.pop();
 				break;
-			default: // case digit
+			default: // case number:
 				tempStack.push(Long.parseLong(calStack.peek()));
 				calStack.pop();
 			}
