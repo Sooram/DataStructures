@@ -57,15 +57,8 @@ public class CalculatorTest {
 		//check input
 		CalculatorTest calInput = new CalculatorTest(input);
 
-		
+		boolean isCorrectInput = calInput.isRightInput();
 		boolean isBalBraces = calInput.isBalanced();
-		if(isBalBraces) {
-			System.out.println("balanced");
-		}
-		else {
-			System.out.println("unbalanced");
-		}
-		boolean isCorrectInput = calInput.isRightInput(input);
 		if (isCorrectInput == false || isBalBraces == false) {
 			throw new Error();
 		}
@@ -94,76 +87,14 @@ public class CalculatorTest {
 
 		return c;
 	} // end charAt
-/*
+
 	public boolean isRightInput() 
-	{ // check whether 'input' is correct or not
-		boolean isRight = true;
-		String input = this.str;
-
-		// if there's nothing inside the parenthesis
-		
-		Pattern opInsideParPattern = Pattern.compile("[\\(][\\+\\-\\*\\/\\%\\^]*[\\)]");
-		Matcher opInsidePar = opInsideParPattern.matcher(input);
-		boolean isOpInsideParErr = opInsidePar.find();
-		if(isOpInsideParErr) {
-			isRight = false;
-			return isRight;
-		}
-
-		// if there're more than one operator in a row
-		Pattern opRepPattern = Pattern.compile("[\\+\\*\\^\\/\\%]{2,}");
-		Matcher opRep = opRepPattern.matcher(input);
-		boolean isOpRepErr = opRep.find();
-		if (isOpRepErr) {
-			isRight = false;
-			return isRight;
-		}
-
-		// if the operators are at the head of the input
-		Pattern opFirstPattern = Pattern.compile("^[\\+\\*\\^\\/\\%]");
-		Matcher opFirst = opFirstPattern.matcher(input);
-		boolean isOpFirstErr = opFirst.find();
-		if (isOpFirstErr) {
-			isRight = false;
-			return isRight;
-		}
-
-		// if the operators are at the end of the input
-		Pattern opLastPattern = Pattern.compile("[\\+\\-\\*\\^\\/\\%]$");
-		Matcher opLast = opLastPattern.matcher(input);
-		boolean isOpLastErr = opLast.find();
-		if (isOpLastErr) {
-			isRight = false;
-			return isRight;
-		}
-
-		// if the input divides a number by 0
-		Pattern divZeroPattern = Pattern.compile("[0-9]+[\\/\\%][0]");
-		Matcher divZero = divZeroPattern.matcher(input);
-		boolean isDivZeroErr = divZero.find();
-		if (isDivZeroErr) {
-			isRight = false;
-			return isRight;
-		}
-		
-		Pattern zeroExpMinus = Pattern.compile("[0][\\^][\\-][0-9]+");
-		Matcher zeroExp =zeroExpMinus.matcher(input);
-		boolean isZeroExpErr = zeroExp.find();
-		if(isZeroExpErr) {
-			isRight = false;
-			return isRight;
-		}
-
-		return isRight;
-	} // end isRight
-*/
-	public boolean isRightInput(String input)
 	{
 		boolean isRight = true;
 		Stack<Character> inputStack = new Stack<Character>();
 		int index = 0;
-		int numEmptyBraces = 0;
-		
+		String input = this.str;
+	
 		char firstCh = input.charAt(0);
 		inputStack.push(firstCh);
 		if(firstCh == '+' || firstCh == '*' || firstCh == '/' || firstCh == '%' || firstCh == '^' || firstCh == ')') {
@@ -171,7 +102,7 @@ public class CalculatorTest {
 			return false;
 		}
 		index += 1;
-		
+	
 		while((index < input.length()) && (isRight == true)) {
 			isRight = false;
 			char former = inputStack.peek();  // former character of current character
@@ -184,18 +115,9 @@ public class CalculatorTest {
 				else if(former == '(') {
 					isRight = true;
 				}
-				else if((former >= '0' && former <= '9') || former == ')') { 
-					if(input.charAt(index+1) == ')') { // ()D() ()E() ()(E)() ()()E()()
-						isRight = true;
-					}
-				}
 				break;
 			case ')' :
-				if(former == '(') { // ()E()
-					isRight = true;
-					numEmptyBraces ++;
-				}
-				else if(former == ')') { // ((E))
+				if(former == ')') { // ((E))
 					isRight = true;
 				}
 				else if(former >= '0' && former <= '9') { // (D) (E)
@@ -223,14 +145,7 @@ public class CalculatorTest {
 				}
 				break;
 			default : // digits
-				if(former == ')') { // ()D()
-					char temp = inputStack.pop();
-					if(inputStack.peek() == '(') {
-						isRight = true;
-					}
-					inputStack.push(temp);
-				}
-				else if(former == '(') { // (D)
+				if(former == '(') { // (D)
 					isRight = true;
 				}
 				else if(former == '+' || former == '-' || former == '*' || former == '/' || former == '%' || former == '^') {
@@ -245,10 +160,6 @@ public class CalculatorTest {
 			index += 1;
 		} // end while
 		
-		if(numEmptyBraces % 2 != 0) {
-			return false;
-		}
-		
 		// if the operators are at the end of the input
 		Pattern opLastPattern = Pattern.compile("[\\+\\-\\*\\^\\/\\%]$");
 		Matcher opLast = opLastPattern.matcher(input);
@@ -256,7 +167,7 @@ public class CalculatorTest {
 		if (isOpLastErr) {
 			return false;
 		}
-
+	
 		// x/0  x%0
 		Pattern divZeroPattern = Pattern.compile("[0-9]+[\\/\\%][0]");
 		Matcher divZero = divZeroPattern.matcher(input);
@@ -272,10 +183,11 @@ public class CalculatorTest {
 		if(isZeroExpErr) {
 			return false;
 		}
-
+	
 		return isRight;
 	}
-/*	
+
+	
 	public boolean isBalanced() 
 	{ // modification from the book 'Data Abstraction & problem solving with Java'
 	  // check whether 'input' has balances braces
@@ -307,64 +219,6 @@ public class CalculatorTest {
 
 		return isBalanced;
 	} // end isBalanced
-*/	
-	public boolean isBalanced()
-	{
-		boolean isBalanced = true;
-		Stack<Character> singleBraceStack = new Stack<Character>();
-		Stack<Character> emptyBracesStack = new Stack<Character>(); // for "()"
-		
-		boolean balancedSoFar = true;
-		int i = 0;
-		char ch;
-		boolean pushed = false;
-		while (balancedSoFar && i < this.str.length()) {
-			ch = this.charAt(i);
-			++i;
-			if (ch == '(') {
-				if(i < this.str.length() && this.charAt(i) == ')') {
-					++i;
-					
-					if(pushed == true) {
-						if(this.charAt(i-3) == ')' || (this.charAt(i-3) >= '0' && this.charAt(i-3) <= '9')) {
-							if (!emptyBracesStack.isEmpty()) {
-								emptyBracesStack.pop();
-								pushed = false;
-							} else {
-								balancedSoFar = false;
-							}
-						}
-					}
-					else if(i > this.str.length()-1) {
-						balancedSoFar = false;
-					}
-					else if(this.charAt(i) == '(' || this.charAt(i) == '-' || (this.charAt(i) >= '0' && this.charAt(i) <= '9')) {
-						emptyBracesStack.push('e');
-						pushed = true;
-					}
-				}
-				else {
-					singleBraceStack.push('(');
-				}
-			}
-			else if (ch == ')') {
-				if (!singleBraceStack.isEmpty()) {
-					singleBraceStack.pop();
-				} else {
-					balancedSoFar = false;
-				}
-			}
-		} // end while
-		
-		if (!balancedSoFar || !singleBraceStack.isEmpty() || !emptyBracesStack.isEmpty()) {
-			// 'input' does not have balanced braces
-			isBalanced = false;
-			return isBalanced;
-		} // end if
-
-		return isBalanced;
-	}
-	
 
 	public CalculatorTest convertUnaryMinus()
 	{ // find all unary '-' and replace them to '~'
