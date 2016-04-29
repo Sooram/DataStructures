@@ -69,10 +69,8 @@ public class CalculatorTest {
 		// convert to postfix expression
 		CalculatorTest postfixExp = calInput.toPostfix();
 		
-		
 		// do calculation
 		CalculatorTest result = postfixExp.calculate();
-		
 		
 		// print postfix expression and the result
 		System.out.println(postfixExp.str);
@@ -159,15 +157,13 @@ public class CalculatorTest {
 			inputStack.push(input.charAt(index));
 			index += 1;
 		} // end while
-		
+
 		// if the operators are at the end of the input
-		Pattern opLastPattern = Pattern.compile("[\\+\\-\\*\\^\\/\\%]$");
-		Matcher opLast = opLastPattern.matcher(input);
-		boolean isOpLastErr = opLast.find();
-		if (isOpLastErr) {
+		char finalCh = inputStack.peek();
+		if(finalCh == '+' || finalCh == '-' || finalCh == '*' || finalCh == '^' || finalCh == '/' || finalCh == '%') {
 			return false;
 		}
-	
+
 		// x/0  x%0
 		Pattern divZeroPattern = Pattern.compile("[0-9]+[\\/\\%][0]");
 		Matcher divZero = divZeroPattern.matcher(input);
@@ -185,7 +181,7 @@ public class CalculatorTest {
 		}
 	
 		return isRight;
-	}
+	} // end isRightInput
 
 	
 	public boolean isBalanced() 
@@ -230,17 +226,7 @@ public class CalculatorTest {
 		char ch;
 		for(i=length-1; i>=0; i--) { //push string into the stack
 			ch = this.charAt(i);
-			if(ch == '(') { 
-				if(myStack.peek() == ')') { // empty braces
-					myStack.pop();
-				}
-				else {
-					myStack.push(ch);
-				}
-			}
-			else {
-				myStack.push(ch);
-			}
+			myStack.push(ch);
 		}
 		
 		i = 0; 
