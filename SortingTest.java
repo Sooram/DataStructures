@@ -96,8 +96,8 @@ public class SortingTest
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoBubbleSort(int[] value)
-	{
-		// TODO : Bubble Sort 를 구현하라.
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+		
 		// value는 정렬안된 숫자들의 배열이며 value.length 는 배열의 크기가 된다.
 		// 결과로 정렬된 배열은 리턴해 주어야 하며, 두가지 방법이 있으므로 잘 생각해서 사용할것.
 		// 주어진 value 배열에서 안의 값만을 바꾸고 value를 다시 리턴하거나
@@ -123,8 +123,8 @@ public class SortingTest
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoInsertionSort(int[] value)
-	{
-		// TODO : Insertion Sort 를 구현하라.
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+		
 		int unsortedIndex, sortedIndex = 0;
 		
 		for(unsortedIndex = 1; unsortedIndex < value.length; ++unsortedIndex) {
@@ -144,16 +144,65 @@ public class SortingTest
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoHeapSort(int[] value)
 	{
-		// TODO : Heap Sort 를 구현하라.
+		BuildMaxHeap(value);
 		
+		int last = value.length-1;
+		int tempItem;
+		while(last >= 2) {
+			
+			tempItem = value[last];
+			value[last] = value[0];
+			value[0] = tempItem;
+			
+			--last;
+			
+			MaxHeapify(value, 0, last);
+		}
 		
 		return (value);
 	}
+	
+	private static void BuildMaxHeap(int[] value) 
+	{
+		int i;
+		int last = value.length-1;
+		for(i = value.length/2; i >= 0; i--) {
+			MaxHeapify(value, i, last);
+		}
+	}
+	
+	private static void MaxHeapify(int[] value, int curr, int last)
+	{
+		int left = 2 * curr + 1;
+		int right = 2 * curr + 2;
+		int larger;
+		
+		if(left <= last && value[left] >= value[right]) {
+			larger = left;
+		}
+		else if(right <= last && value[right] > value[left]){
+			larger = right;
+		}
+		else {
+			larger = curr;
+		}
+		
+		int tempItem;
+		if(value[curr] < value[larger]) {
+			
+			tempItem = value[curr];
+			value[curr] = value[larger];
+			value[larger] = tempItem;
+			
+			MaxHeapify(value, larger, last);
+		}
+	}
+		
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoMergeSort(int[] value)
-	{
-		// TODO : Merge Sort 를 구현하라.
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+		
 		int mid = value.length/2;
 		DoMergeSort(Arrays.copyOfRange(value, 0, mid));
 		DoMergeSort(Arrays.copyOfRange(value, mid+1, value.length-1));
@@ -162,7 +211,8 @@ public class SortingTest
 		return (value);
 	}
 	
-	private static int[] Merge(int[] value, int mid) {
+	private static int[] Merge(int[] value, int mid) 
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
 		// initialize the local indexes to indicate the subarrays
 		int first1 = 0;
 		int last1 = mid;
@@ -204,15 +254,18 @@ public class SortingTest
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoQuickSort(int[] value)
-	{
-		// TODO : Quick Sort 를 구현하라.
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+		int pivotIndex = Partition(value);
+		DoQuickSort(Arrays.copyOfRange(value, 0, pivotIndex));
+		DoQuickSort(Arrays.copyOfRange(value, pivotIndex+1, value.length-1));
+		
 		return (value);
 	}
 
-	private static void choosePivot(int[] value)
+	private static void ChoosePivot(int[] value)
 	{
 		// choose pivot and exchange it with the first element
-		Random randomNum = Random();
+		Random randomNum = new Random();
 		int i = randomNum.nextInt(value.length-1);
 		int temp;
 		temp = value[0];
@@ -221,20 +274,42 @@ public class SortingTest
 	}
 	
 	private static int Partition(int[] value) 
-	{
-		choosePivot(value);
+	{ // modification from the book 'Data Abstraction & problem solving with Java'
+		
+		ChoosePivot(value);
 		int pivot = value[0];
 		
-		int lastS1 = 0;
+		int firstSecEnd = 0;
+		int unknownSecFirst;
+		int tempItem;
+		
+		for (unknownSecFirst = 1; unknownSecFirst <= value.length; ++unknownSecFirst) {
+			if(value[unknownSecFirst] < pivot) { // item from unknown belongs in the first section
+				// make 'firstSecEnd' be the index of the first item of the second section
+				// by increasing it by one
+				++firstSecEnd;
+				
+				// exchange item from unknown with the last item of the first section
+				tempItem = value[unknownSecFirst];
+				value[unknownSecFirst] = value[firstSecEnd];
+				value[firstSecEnd] = tempItem;
+			}
+			// else item from unknown belongs in the second section
+			// which is already handled by '++unknownSecFirst'
+		} // end for
+		
+		// place pivot in proper position and mark its location
+		value[0] = value[firstSecEnd];
+		value[firstSecEnd] = pivot;
 		
 		
-		return lastS1;
+		return firstSecEnd;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoRadixSort(int[] value)
 	{
-		// TODO : Radix Sort 를 구현하라.
+		
 		
 		return (value);
 	}
