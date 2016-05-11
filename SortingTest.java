@@ -159,6 +159,12 @@ public class SortingTest
 			MaxHeapify(value, 0, last);
 		}
 		
+		if(value[0] > value[1]) {
+			tempItem = value[1];
+			value[1] = value[0];
+			value[0] = tempItem;
+		}			
+		
 		return (value);
 	}
 	
@@ -313,7 +319,12 @@ public class SortingTest
 		List<String> valueStr = new ArrayList<>();
 		for(i=0; i<value.length; i++) {
 			// convert int[] to String[]
-			valueStr.add(String.format("%10s",  String.valueOf(value[i])).replace(' ', '0'));
+			if(value[i] < 0) {
+				valueStr.add("-" + String.format("%10s", String.valueOf(value[i]).substring(1)).replace(' ', '0'));		
+			}
+			else {
+			valueStr.add(String.format("%11s",  String.valueOf(value[i])).replace(' ', '0'));
+			}
 		}
 		
 		List<List<String>> bucket = new LinkedList<>();
@@ -321,7 +332,7 @@ public class SortingTest
 		
 		int j;
 		char digit;
-		for(j=10; j>0; j--) {
+		for(j=11; j>0; j--) {
 			ClearBucket(bucket);
 			for(i=0; i<value.length; i++) {
 				if(j > valueStr.get(i).length()) {
@@ -329,12 +340,19 @@ public class SortingTest
 				}
 				else {
 					digit = valueStr.get(i).charAt(j-1);
-					bucket.get(digit-48).add(valueStr.get(i));
+					if(digit == '-') {
+						bucket.get(0).add(valueStr.get(i));
+					}
+					else {
+						bucket.get(digit-47).add(valueStr.get(i));
+					}
 				}
 			} // end for i
 			
 			valueStr.clear();
-			for(i=0; i<10; i++) {
+			Collections.reverse(bucket.get(0));
+			
+			for(i=0; i<11; i++) {
 				valueStr.addAll(bucket.get(i));
 			}
 		} // end for j
@@ -348,6 +366,7 @@ public class SortingTest
 	
 	private static void MakeBucket(List<List<String>> bucket) 
 	{	
+		List<String> lM = new LinkedList<>();
 		List<String> l0 = new LinkedList<>();
 		List<String> l1 = new LinkedList<>();
 		List<String> l2 = new LinkedList<>();
@@ -359,6 +378,7 @@ public class SortingTest
 		List<String> l8 = new LinkedList<>();
 		List<String> l9 = new LinkedList<>();
 		
+		bucket.add(lM);
 		bucket.add(l0);
 		bucket.add(l1);
 		bucket.add(l2);
@@ -375,7 +395,7 @@ public class SortingTest
 	private static void ClearBucket(List<List<String>> bucket) 
 	{
 		int i;
-		for(i=0; i<10; i++) {
+		for(i=0; i<11; i++) {
 			bucket.get(i).clear();
 		}
 	}
