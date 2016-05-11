@@ -309,9 +309,74 @@ public class SortingTest
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoRadixSort(int[] value)
 	{
+		int i;
+		List<String> valueStr = new ArrayList<>();
+		for(i=0; i<value.length; i++) {
+			// convert int[] to String[]
+			valueStr.add(String.format("%10s",  String.valueOf(value[i])).replace(' ', '0'));
+		}
 		
+		List<List<String>> bucket = new LinkedList<>();
+		MakeBucket(bucket);
 		
+		int j;
+		char digit;
+		for(j=10; j>0; j--) {
+			ClearBucket(bucket);
+			for(i=0; i<value.length; i++) {
+				if(j > valueStr.get(i).length()) {
+					bucket.get(0).add(valueStr.get(i));
+				}
+				else {
+					digit = valueStr.get(i).charAt(j-1);
+					bucket.get(digit-48).add(valueStr.get(i));
+				}
+			} // end for i
+			
+			valueStr.clear();
+			for(i=0; i<10; i++) {
+				valueStr.addAll(bucket.get(i));
+			}
+		} // end for j
+		
+		for(i=0; i<value.length; i++) {
+			// convert list to int[]
+			value[i] = Integer.valueOf(valueStr.get(i));
+		}
 		return (value);
 	}
+	
+	private static void MakeBucket(List<List<String>> bucket) 
+	{	
+		List<String> l0 = new LinkedList<>();
+		List<String> l1 = new LinkedList<>();
+		List<String> l2 = new LinkedList<>();
+		List<String> l3 = new LinkedList<>();
+		List<String> l4 = new LinkedList<>();
+		List<String> l5 = new LinkedList<>();
+		List<String> l6 = new LinkedList<>();
+		List<String> l7 = new LinkedList<>();
+		List<String> l8 = new LinkedList<>();
+		List<String> l9 = new LinkedList<>();
+		
+		bucket.add(l0);
+		bucket.add(l1);
+		bucket.add(l2);
+		bucket.add(l3);
+		bucket.add(l4);
+		bucket.add(l5);
+		bucket.add(l6);
+		bucket.add(l7);
+		bucket.add(l8);
+		bucket.add(l9);
+	
+	}
+	
+	private static void ClearBucket(List<List<String>> bucket) 
+	{
+		int i;
+		for(i=0; i<10; i++) {
+			bucket.get(i).clear();
+		}
+	}
 }
-
