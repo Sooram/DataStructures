@@ -59,10 +59,11 @@ public class SortingTest
 						newvalue = DoHeapSort(newvalue);
 						break;
 					case 'M':	// Merge Sort
-						newvalue = DoMergeSort(newvalue);
+						int[] tempArray = new int[value.length];
+						newvalue = DoMergeSort(newvalue, tempArray, 0, newvalue.length-1);
 						break;
 					case 'Q':	// Quick Sort
-						newvalue = DoQuickSort(newvalue);
+						newvalue = DoQuickSort(newvalue, 0, newvalue.length-1);
 						break;
 					case 'R':	// Radix Sort
 						newvalue = DoRadixSort(newvalue);
@@ -96,7 +97,7 @@ public class SortingTest
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoBubbleSort(int[] value)
-	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	{ // copy from 'Data Abstraction & problem solving with Java'
 		
 		// value는 정렬안된 숫자들의 배열이며 value.length 는 배열의 크기가 된다.
 		// 결과로 정렬된 배열은 리턴해 주어야 하며, 두가지 방법이 있으므로 잘 생각해서 사용할것.
@@ -123,19 +124,20 @@ public class SortingTest
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoInsertionSort(int[] value)
-	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	{ // copy from 'Data Abstraction & problem solving with Java'
 		
-		int unsortedIndex, sortedIndex = 0;
+		int unsortedIndex, insertPosition;
 		
 		for(unsortedIndex = 1; unsortedIndex < value.length; ++unsortedIndex) {
 			int nextItem = value[unsortedIndex];
+			insertPosition = unsortedIndex;
 			
-			while((sortedIndex > 0) && (value[sortedIndex-1] > nextItem)) {
+			while((insertPosition > 0) && (value[insertPosition-1] > nextItem)) {
 			// find the right place to insert 'nextItem'
-				value[sortedIndex] = value[sortedIndex-1];
-				sortedIndex--;
+				value[insertPosition] = value[insertPosition-1];
+				insertPosition--;
 			}
-			value[sortedIndex] = nextItem;			
+			value[insertPosition] = nextItem;			
 		}
 		
 		return (value);
@@ -143,20 +145,20 @@ public class SortingTest
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoHeapSort(int[] value)
-	{
-		BuildMaxHeap(value);
+	{ // copy from 'Introduction to algorithms'
+		buildMaxHeap(value);
 		
 		int last = value.length-1;
 		int tempItem;
 		while(last >= 2) {
-			
+			// swap the last element with the first element(the biggest value)
 			tempItem = value[last];
 			value[last] = value[0];
 			value[0] = tempItem;
 			
 			--last;
-			
-			MaxHeapify(value, 0, last);
+			// make the remained array have max heap property
+			maxHeapify(value, 0, last);
 		}
 		
 		if(value[0] > value[1]) {
@@ -168,25 +170,25 @@ public class SortingTest
 		return (value);
 	}
 	
-	private static void BuildMaxHeap(int[] value) 
-	{
+	private static void buildMaxHeap(int[] value) 
+	{ // copy from 'Introduction to algorithms'
 		int i;
 		int last = value.length-1;
 		for(i = value.length/2; i >= 0; i--) {
-			MaxHeapify(value, i, last);
+			maxHeapify(value, i, last);
 		}
 	}
 	
-	private static void MaxHeapify(int[] value, int curr, int last)
-	{
+	private static void maxHeapify(int[] value, int curr, int last)
+	{ // copy from 'Introduction to algorithms'
 		int left = 2 * curr + 1;
 		int right = 2 * curr + 2;
 		int larger;
 		
-		if(left <= last && value[left] >= value[right]) {
+		if(left <= last && right <= last && value[left] >= value[right]) {
 			larger = left;
 		}
-		else if(right <= last && value[right] > value[left]){
+		else if(left <= last && right <= last && value[right] > value[left]){
 			larger = right;
 		}
 		else {
@@ -200,34 +202,35 @@ public class SortingTest
 			value[curr] = value[larger];
 			value[larger] = tempItem;
 			
-			MaxHeapify(value, larger, last);
+			maxHeapify(value, larger, last);
 		}
 	}
-		
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	private static int[] DoMergeSort(int[] value)
-	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	private static int[] DoMergeSort(int[] value, int[] tempArray, int first, int last)
+	{ // copy from 'Data Abstraction & problem solving with Java'
 		
-		int mid = value.length/2;
-		DoMergeSort(Arrays.copyOfRange(value, 0, mid));
-		DoMergeSort(Arrays.copyOfRange(value, mid+1, value.length-1));
-		Merge(value, mid);
+		if(first < last) {
+			int mid = (first + last)/2;
+			DoMergeSort(value, tempArray, first, mid);
+			DoMergeSort(value, tempArray,  mid+1, last);
+			merge(value, tempArray, first, mid, last);
+		}
 		
 		return (value);
 	}
 	
-	private static int[] Merge(int[] value, int mid) 
-	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	private static int[] merge(int[] value, int[] tempArray, int first, int mid, int last) 
+	{ // copy from 'Data Abstraction & problem solving with Java'
 		// initialize the local indexes to indicate the subarrays
-		int first1 = 0;
+		int first1 = first;
 		int last1 = mid;
 		int first2 = mid+1;
-		int last2 = value.length-1;
+		int last2 = last;
 		
-		int[] tempArray = new int[value.length];
+//		int[] tempArray = new int[value.length];
 		
-		int i = 0;		
+		int i = first;		
 		while(first1 <= last1 && first2 <= last2) {
 			if(value[first1] <= value[first2]) {
 				tempArray[i] = value[first1];
@@ -251,7 +254,7 @@ public class SortingTest
 			i++;
 		}
 		
-		for(i=0; i<value.length; i++) {
+		for(i=first; i<=last; ++i) {
 			value[i] = tempArray[i];
 		}
 		
@@ -259,37 +262,39 @@ public class SortingTest
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	private static int[] DoQuickSort(int[] value)
-	{ // modification from the book 'Data Abstraction & problem solving with Java'
-		int pivotIndex = Partition(value);
-		DoQuickSort(Arrays.copyOfRange(value, 0, pivotIndex));
-		DoQuickSort(Arrays.copyOfRange(value, pivotIndex+1, value.length-1));
-		
+	private static int[] DoQuickSort(int[] value, int first, int last)
+	{ // copy from 'Data Abstraction & problem solving with Java'
+		int pivotIndex;  
+		if(first < last) {
+			pivotIndex = partition(value, first, last);
+			DoQuickSort(value, first, pivotIndex-1);
+			DoQuickSort(value, pivotIndex+1, last);
+		}
 		return (value);
 	}
 
-	private static void ChoosePivot(int[] value)
-	{
+	private static void choosePivot(int[] value, int first, int last)
+	{ // modification from 'Data Abstraction & problem solving with Java'
 		// choose pivot and exchange it with the first element
 		Random randomNum = new Random();
-		int i = randomNum.nextInt(value.length-1);
+		int i = randomNum.nextInt(last-first+1) + first;
 		int temp;
-		temp = value[0];
-		value[0] = value[i];
+		temp = value[first];
+		value[first] = value[i];
 		value[i] = temp;
 	}
 	
-	private static int Partition(int[] value) 
-	{ // modification from the book 'Data Abstraction & problem solving with Java'
+	private static int partition(int[] value, int first, int last) 
+	{ // modification from 'Data Abstraction & problem solving with Java'
 		
-		ChoosePivot(value);
-		int pivot = value[0];
+		choosePivot(value, first, last);
+		int pivot = value[first];
 		
-		int firstSecEnd = 0;
+		int firstSecEnd = first;
 		int unknownSecFirst;
 		int tempItem;
 		
-		for (unknownSecFirst = 1; unknownSecFirst <= value.length; ++unknownSecFirst) {
+		for (unknownSecFirst = first+1; unknownSecFirst <= last; ++unknownSecFirst) {
 			if(value[unknownSecFirst] < pivot) { // item from unknown belongs in the first section
 				// make 'firstSecEnd' be the index of the first item of the second section
 				// by increasing it by one
@@ -305,9 +310,9 @@ public class SortingTest
 		} // end for
 		
 		// place pivot in proper position and mark its location
-		value[0] = value[firstSecEnd];
-		value[firstSecEnd] = pivot;
-		
+		tempItem = value[first];
+		value[first] = value[firstSecEnd];
+		value[firstSecEnd] = tempItem;	
 		
 		return firstSecEnd;
 	}
@@ -328,12 +333,12 @@ public class SortingTest
 		}
 		
 		List<List<String>> bucket = new LinkedList<>();
-		MakeBucket(bucket);
+		makeBucket(bucket);
 		
 		int j;
 		char digit;
 		for(j=11; j>0; j--) {
-			ClearBucket(bucket);
+			clearBucket(bucket);
 			for(i=0; i<value.length; i++) {
 				if(j > valueStr.get(i).length()) {
 					bucket.get(0).add(valueStr.get(i));
@@ -364,7 +369,7 @@ public class SortingTest
 		return (value);
 	}
 	
-	private static void MakeBucket(List<List<String>> bucket) 
+	private static void makeBucket(List<List<String>> bucket) 
 	{	
 		List<String> lM = new LinkedList<>();
 		List<String> l0 = new LinkedList<>();
@@ -392,7 +397,7 @@ public class SortingTest
 	
 	}
 	
-	private static void ClearBucket(List<List<String>> bucket) 
+	private static void clearBucket(List<List<String>> bucket) 
 	{
 		int i;
 		for(i=0; i<11; i++) {
