@@ -150,7 +150,7 @@ public class SortingTest
 		
 		int last = value.length-1;
 		int tempItem;
-		while(last >= 2) {
+		while(last >= 1) {
 			// swap the last element with the first element(the biggest value)
 			tempItem = value[last];
 			value[last] = value[0];
@@ -160,13 +160,7 @@ public class SortingTest
 			// make the remained array have max heap property
 			maxHeapify(value, 0, last);
 		}
-		
-		if(value[0] > value[1]) {
-			tempItem = value[1];
-			value[1] = value[0];
-			value[0] = tempItem;
-		}			
-		
+			
 		return (value);
 	}
 	
@@ -319,89 +313,72 @@ public class SortingTest
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static int[] DoRadixSort(int[] value)
-	{
+	{ // modification from: https://gist.githubusercontent.com/yeison/5606963	
+		int[] negValues = new int[value.length];
+		int[] posValues = new int[value.length];
+		int negCount = 0, posCount = 0;
+		
+		// divide to negative value and positive value
 		int i;
-		List<String> valueStr = new ArrayList<>();
 		for(i=0; i<value.length; i++) {
-			// convert int[] to String[]
 			if(value[i] < 0) {
-				valueStr.add("-" + String.format("%10s", String.valueOf(value[i]).substring(1)).replace(' ', '0'));		
+				negValues[negCount] = value[i];
+				negCount++;
 			}
 			else {
-			valueStr.add(String.format("%11s",  String.valueOf(value[i])).replace(' ', '0'));
+				posValues[posCount] = value[i];
+				posCount++;
 			}
 		}
-		
-		List<List<String>> bucket = new LinkedList<>();
-		makeBucket(bucket);
-		
-		int j;
-		char digit;
-		for(j=11; j>0; j--) {
-			clearBucket(bucket);
-			for(i=0; i<value.length; i++) {
-				if(j > valueStr.get(i).length()) {
-					bucket.get(0).add(valueStr.get(i));
-				}
-				else {
-					digit = valueStr.get(i).charAt(j-1);
-					if(digit == '-') {
-						bucket.get(0).add(valueStr.get(i));
-					}
-					else {
-						bucket.get(digit-47).add(valueStr.get(i));
-					}
-				}
-			} // end for i
-			
-			valueStr.clear();
-			Collections.reverse(bucket.get(0));
-			
-			for(i=0; i<11; i++) {
-				valueStr.addAll(bucket.get(i));
-			}
-		} // end for j
-		
-		for(i=0; i<value.length; i++) {
-			// convert list to int[]
-			value[i] = Integer.valueOf(valueStr.get(i));
-		}
+
+		for(int place=1; place <= 1000000000; place *= 10){
+            // Use counting sort at each digit's place
+            negValues = countingSort(Arrays.copyOfRange(negValues, 0, negCount), place);
+            posValues = countingSort(Arrays.copyOfRange(posValues, 0, posCount), place);
+        }
+        
+		// copy the sorted array back to 'value'
+        for(i=0; i<negCount; i++) {
+        	value[i] = negValues[negCount-i-1];
+        }
+        for(i=negCount; i<value.length; i++) {
+        	value[i] = posValues[i-negCount];
+        }
+
 		return (value);
 	}
 	
-	private static void makeBucket(List<List<String>> bucket) 
-	{	
-		List<String> lM = new LinkedList<>();
-		List<String> l0 = new LinkedList<>();
-		List<String> l1 = new LinkedList<>();
-		List<String> l2 = new LinkedList<>();
-		List<String> l3 = new LinkedList<>();
-		List<String> l4 = new LinkedList<>();
-		List<String> l5 = new LinkedList<>();
-		List<String> l6 = new LinkedList<>();
-		List<String> l7 = new LinkedList<>();
-		List<String> l8 = new LinkedList<>();
-		List<String> l9 = new LinkedList<>();
-		
-		bucket.add(lM);
-		bucket.add(l0);
-		bucket.add(l1);
-		bucket.add(l2);
-		bucket.add(l3);
-		bucket.add(l4);
-		bucket.add(l5);
-		bucket.add(l6);
-		bucket.add(l7);
-		bucket.add(l8);
-		bucket.add(l9);
-	
-	}
-	
-	private static void clearBucket(List<List<String>> bucket) 
-	{
-		int i;
-		for(i=0; i<11; i++) {
-			bucket.get(i).clear();
-		}
-	}
+	   private static int[] countingSort(int[] input, int place)
+	   { // modification from: https://gist.githubusercontent.com/yeison/5606963	
+	        int[] out = new int[input.length];
+	        int[] count = new int[10];
+
+	        for(int i=0; i < input.length; i++){
+	        	// according to the digit, count up the value of indexed matching to it
+	        	int digit = getDigit(input[i], place);
+	            count[digit] += 1;
+	        }
+
+	        for(int i=1; i < count.length; i++){
+	        	// calculate accumulated number of elements in each index
+	            count[i] += count[i-1];
+	        }
+
+	        for(int i = input.length-1; i >= 0; i--){
+	        	// find the right place of input[i] using 'count' 
+	        	// and put it into 'out'
+	           	int digit = getDigit(input[i], place);
+	            out[count[digit]-1] = input[i];
+	            count[digit]--;
+	        }
+
+	        return out;
+
+	    }
+	    
+	    private static int getDigit(int value, int digitPlace)
+	    {
+	        return Math.abs((value/digitPlace ) % 10);
+	    }
+
 }
